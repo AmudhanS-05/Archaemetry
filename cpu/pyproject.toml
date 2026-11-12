@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "archaemetry"
+dynamic = ["version"]
+description = "Publication-style profile drawings of pottery from 3D meshes (CPU only)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "trimesh>=4.0",
+  "matplotlib>=3.7",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+holes = ["pymeshlab>=2023.12"]       # only for cleanup.close_holes_max_edges
+test = ["pytest>=7"]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+archaemetry = "archaemetry.cli:main"
+
+[project.gui-scripts]
+archaemetry-gui = "archaemetry.gui:main"
+
+[tool.setuptools]
+packages = ["archaemetry"]
+
+[tool.setuptools.dynamic]
+version = { attr = "archaemetry.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

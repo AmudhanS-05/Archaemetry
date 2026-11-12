@@ -1,31 +1,44 @@
-# archaemetry — per-sherd pipeline configuration (the entire field-facing surface).
-# Most values have sane defaults; a field user typically edits only images_dir,
-# the scale block, and `ware`. Everything else is internal tuning.
+# archaemetry - per-sherd configuration. Every key here is read by the code;
+# anything else produces a warning in the report. Print defaults: `archaemetry config`.
 
-capture:
-  images_dir: ./raw_images
-  masking: auto            # auto | none  (auto = segment background out per-image, before SfM)
-  pose_priors: null        # path to Orbiter/rig extrinsics, if available -> seeds COLMAP
+sherd:
+  id: SAL_1.1               # label on the drawing and output file names (default: file name)
 
-scale:                     # the metric anchor — REQUIRED for mm accuracy
-  marker_pair: [id4, id7]  # two ArUco markers...
-  distance_mm: 62.40       # ...and the calliper distance between them (data/reference/marker-measurements.csv)
+scale:                      # mesh units -> millimetres
+  mm_per_unit: 1.0          # 1.0 if the mesh is already in mm (RealityCapture with scale bar)
+  mesh_distance: null       # OR: a distance measured on the mesh (e.g. between two markers)...
+  distance_mm: null         # ...and the same distance by calliper; overrides mm_per_unit
 
-cleanup:                   # -> clean_mesh.py
-  keep_largest_only: true  # drop the background/turntable + noise islands (deterministic)
-  min_faces: null          # alternative: drop components smaller than N faces (null = keep largest only)
-  close_holes_max_mm: 3.0  # 0 = never fabricate geometry
+cleanup:
+  keep_largest_only: true   # drop turntable, backdrop and noise islands
+  min_faces: null           # instead keep every piece with at least this many faces
+  close_holes_max_edges: 0  # fill holes up to this many boundary edges (needs pymeshlab); 0 = never
+  save_mesh: true           # write <id>_clean.ply
 
-profile:                   # -> extract_profile.py
-  axis: auto               # auto | [x,y,z] manual hint
-  axis_method: pca         # pca (near-complete vessels) | rim_arc (rim sherds) | inner_surface (body sherds)
-  bands: 300               # number of height bands sampled along the axis
-  thickness_interval_mm: 5 # where to sample wall thickness (reporting)
+profile:
+  axis_method: auto         # auto | pca | rim_arc | normals_refine | manual
+                            #   pca: complete or near-complete vessels
+                            #   rim_arc: open (exterior-only) meshes with >= ~90 deg of clean rim
+                            #   normals_refine: surface fit, works on closed two-walled sherds (experimental)
+                            #   auto: rim_arc, else normals_refine
+                            #   manual: use `axis` below (e.g. mesh oriented in MeshLab with axis = Y)
+  axis:
+    direction: [0, 1, 0]
+    point: [0, 0, 0]        # in mesh units
+  orientation: auto         # auto | flip  (flip if the rim comes out at the bottom)
+  bands: 300                # height bands for the robust exterior and coverage
+  thickness_interval_mm: 5  # wall thickness sampled every N mm below the rim
+  min_wall_sep_mm: 0.4
 
-publish:                   # -> Inkscape CLI (Stage 4, not yet scripted)
+drawing:
+  section_side: left        # left | right
+  fill: solid               # solid | hatch | none
   line_weight_mm: 0.3
   scale_bar: true
-  hatching: true
-  template: cva            # draughting convention
+  caption: true             # rim diameter, wall range, axis method, version
+  formats: [svg, png, pdf]
 
-ware: plain                # plain -> automatable lane | decorated -> route to GigaMesh station (rollout/MSII)
+ware: plain                 # plain | decorated (decorated is flagged for the GigaMesh station)
+
+# Stage 1 (photos -> mesh) lives in gpu/ and is not built yet; capture settings are
+# recorded in data/reference/hardware-inputs.template.yaml.

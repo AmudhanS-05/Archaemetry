@@ -11,10 +11,10 @@ import argparse, csv, json, os, sys
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, HERE)
-from extract_profile import fit_axis, fit_axis_rim_arc
-from axis_fit import fit_axis_normals, refine_consistency, axis_uncertainty
+from archaemetry.axis import (fit_axis, fit_axis_rim_arc, fit_axis_normals, refine_consistency,
+                              axis_uncertainty)
 from accuracy_oracle import crop_wedge_faces, perp_radius, angle_deg
-from synthetic_validation import revolve
+from archaemetry.synthetic import revolve
 
 CROPS = {"rim": (0.62, 1.0), "body": (0.25, 0.55)}
 _h = np.linspace(0, 80, 41)

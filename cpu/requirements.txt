@@ -1,9 +1,9 @@
-# archaemetry scripted pipeline — Python dependencies
-# Tested on Python 3.10 (Windows). Create a venv and: pip install -r requirements.txt
-numpy==2.2.6
-open3d==0.19.0
-matplotlib==3.10.9
-PyYAML==6.0.2
-
-# Optional — only needed for `clean_mesh.py --close-holes-max` (underside hole fill):
-pymeshlab==2025.7.post1
+# archaemetry CPU lane. Prefer: pip install ./cpu   (or pip install -e "./cpu[test]")
+# Pure Python + numpy stack: no GPU, no Open3D, works on Python 3.10-3.13, any OS.
+numpy>=1.24
+scipy>=1.10
+trimesh>=4.0
+matplotlib>=3.7
+PyYAML>=6.0
+# optional, only for cleanup.close_holes_max_edges:
+# pymeshlab>=2023.12

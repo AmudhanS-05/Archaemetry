@@ -25,10 +25,10 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import open3d as o3d
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from extract_profile import fit_axis, fit_axis_rim_arc, basis_from_dir
+from archaemetry.axis import fit_axis, fit_axis_rim_arc, basis_from_dir
+from archaemetry.meshio import load_mesh
 
 
 def perp_radius(V, p0, d):
@@ -74,9 +74,7 @@ def main():
     args = ap.parse_args()
     os.makedirs(args.outdir, exist_ok=True)
 
-    mesh = o3d.io.read_triangle_mesh(args.full)
-    V = np.asarray(mesh.vertices)
-    T = np.asarray(mesh.triangles)
+    V, T = load_mesh(args.full)
     p_true, d_true, _ = fit_axis(V)               # ground truth from complete vessel
     print(f"true axis dir = {d_true.round(4)}")
 
