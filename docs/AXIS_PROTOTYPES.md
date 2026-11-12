@@ -2,7 +2,7 @@
 
 Status: **prototype, synthetic data only.** Default behaviour of the pipeline is unchanged;
 opt in with `--axis-method normals_refine` (or `profile.axis_method: normals_refine`).
-Code: [`cpu/axis_fit.py`](../cpu/axis_fit.py). Harness:
+Code: [`cpu/archaemetry/axis.py`](../cpu/archaemetry/axis.py). Harness:
 [`cpu/tools/axis_methods_eval.py`](../cpu/tools/axis_methods_eval.py).
 
 ## Why
@@ -60,3 +60,34 @@ cd cpu
 python tools/axis_methods_eval.py out/ --noise 0.1 --degrees 60,90,150 --methods pca,rim_arc,normals+refine
 python tools/synthetic_validation.py out2/      # includes the E_/F_ normals_refine cases
 ```
+
+## Update: closed two-walled sherds (the real case)
+
+Everything above was measured on **open, exterior-only** meshes (wedges cut from a
+complete vessel). A photogrammetry scan of a whole sherd is a **closed** surface: outer
+wall, inner wall and break faces. Testing on closed synthetic sherds
+(`archaemetry.synthetic.make_sherd`) exposed three problems, now fixed:
+
+1. **`rim_arc` cannot work on a closed mesh.** It finds the rim from the mesh's open
+   border, and a closed sherd has none. `auto` therefore uses the surface fit for real
+   sherds; `rim_arc` remains for open scans.
+2. **The consistency refinement read wall thickness as radius spread.** With both walls
+   present, each height band holds two radii. The refinement now uses only the outer
+   wall (wall vertices split by the sign of normal . radial; the group at larger radius
+   is the outer wall), and the normal-line fit uses only wall vertices (break-face
+   normals do not meet the axis).
+3. **PCA picked the diameter of squat vessels as the axis.** It now refines from all
+   three principal directions and keeps the most rotationally consistent one.
+
+Closed rim sherd (jar profile, 0.1 mm noise), radial RMS against the true axis:
+
+| Arc | Before fix | After fix | Verdict |
+|---|---|---|---|
+| 120 deg | 3.1 mm spread, ambiguous | 0.10 mm | GO |
+| 90 deg | - | 0.20 mm | REVIEW (ambiguity 0.49 mm, conservative) |
+| 60 deg | - | 0.67 mm | REVIEW |
+| 45 deg | - | 13 mm | REVIEW (wall classification failed: new flag) |
+
+The 45 deg case shows why the new flag exists: with too little surface the outer/inner
+split collapses (8% "outer" instead of ~50%) and the axis is wrong without any
+disagreement between seeds; the run is now flagged instead of passing.

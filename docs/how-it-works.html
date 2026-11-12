@@ -43,24 +43,24 @@
 <div class="tablewrap"><table>
 <tr><th>Method</th><th>Idea</th><th>Best for</th></tr>
 <tr><td><code>pca</code></td><td>Longest direction as a seed, then refit through the centres of circles fitted to horizontal slices</td><td>Complete or large vessels</td></tr>
-<tr><td><code>rim_arc</code></td><td>Fit a plane and circle to the rim edge; the plane's normal is the axis. Refuses if the arc is too short, too ragged or not flat</td><td>Rim sherds with enough rim</td></tr>
-<tr><td><code>normals_refine</code> <span class="tag warn">Prototype</span></td><td>Every surface normal of a surface of revolution meets the axis, so solve for the line that comes closest to all of them; then nudge it until radius depends on height alone. Start from several seeds and check that the good answers agree</td><td>Small or rim-less sherds</td></tr>
+<tr><td><code>rim_arc</code></td><td>Fit a plane and circle to the rim edge; the plane's normal is the axis. Refuses if the arc is too short, too ragged or not flat. Needs the rim as an open mesh edge, so it applies to exterior-only scans, not closed sherd scans</td><td>Open scans with enough rim</td></tr>
+<tr><td><code>normals_refine</code> <span class="tag warn">Prototype</span></td><td>Every surface normal of a surface of revolution meets the axis, so solve for the line that comes closest to all wall normals; then nudge it until the outer wall's radius depends on height alone. Start from several seeds and check that the good answers agree</td><td>Closed sherd scans, rim or body</td></tr>
 </table></div>
 
-<h3>Cutting the profile</h3>
-<p>Every vertex becomes a height along the axis and a distance from it. The height range is split into 300 bands and the <b>median</b> radius in each is the wall. Median rather than maximum, because a handle covers only a minority of the circumference.</p>
+<h3>Cutting the section</h3>
+<p>As a draughtsperson or GigaMesh would, the mesh is cut by a plane that contains the axis. For a scan with both surfaces this gives a closed outline (outer wall, lip, inner wall, break) that is drawn filled. Several cuts are tried across the sherd; the most complete one is kept, checked against a robust exterior from every vertex (the median radius at each height), so a cut through a chip or a handle loses.</p>
 
 <h3>Wall thickness</h3>
-<p>For a sherd that captured both surfaces, each band's radii form two clusters. A one-dimensional Otsu threshold splits them into inner and outer wall; thickness is the gap. An exterior-only mesh is a single cluster and correctly reports none.</p>
+<p>Measured on the section like a calliper: the shortest distance from the outer wall to the inner wall, every 5&nbsp;mm below the rim, taken as the median over all near-complete cuts. Sampling stops one wall-thickness above the break, where the shortest path would run across the break face. An exterior-only scan has no inner wall and correctly reports none.</p>
 
 <h2>Stage 4 · Publish</h2>
-<p>Plain SVG editing, no GUI: a metric scale bar, a caption and the 0.3&nbsp;mm line weight. The profile geometry is not touched, and tests check that the lines and scale are identical before and after.</p>
+<p>The drawing follows the usual conventions: rim at the top, a thin axis line, the section filled black on one side, the exterior view on the other, a rim line across the full diameter, the sherd ID above and a block scale bar in centimetres below. It is written as SVG, PDF and PNG at 1:1 in millimetres, and tests check that the drawn section is exactly the measured one.</p>
 
 <h2>The verdict</h2>
 <div class="tablewrap"><table>
 <tr><th>Signal</th><th>Meaning</th><th>Effect</th></tr>
 <tr><td><code>rim_arc</code> fell back</td><td>No clean rim arc of at least 70°</td><td><span class="tag warn">REVIEW</span></td></tr>
-<tr><td><code>normals_refine</code> ambiguous</td><td>Good axes disagree (sphere or cone-like surface, too little surface)</td><td><span class="tag warn">REVIEW</span></td></tr>
+<tr><td><code>normals_refine</code> ambiguous</td><td>Good axes disagree, or outer and inner wall could not be told apart (too little surface, sphere or cone-like)</td><td><span class="tag warn">REVIEW</span></td></tr>
 <tr><td>Very low angular coverage</td><td>Under a quarter of the circumference present (a tenth for <code>normals_refine</code>)</td><td><span class="tag warn">REVIEW</span></td></tr>
 <tr><td>None of these</td><td>Axis fixed from real evidence</td><td><span class="tag ok">GO</span></td></tr>
 </table></div>

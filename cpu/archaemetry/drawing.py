@@ -24,7 +24,7 @@ def layout(section, kind, ext_h, ext_r, side="left"):
     # along the underside to the axis, as in a whole-vessel drawing
     bottom = section[:, 1].min()
     if kind == "section" and section[np.abs(section[:, 1] - bottom) < 1.0, 0].min() < 1.0:
-        ext = np.vstack([ext, [0.0, top - bottom]])
+        ext = np.vstack([ext, [ext[-1, 0], top - bottom], [0.0, top - bottom]])
     # rim radius: outermost section radius within 1.5 mm of the top
     near_top = section[section[:, 1] >= top - 1.5]
     r_rim = float(near_top[:, 0].max()) if len(near_top) else float(section[:, 0].max())

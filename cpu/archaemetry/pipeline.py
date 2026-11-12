@@ -127,6 +127,9 @@ def run(input_path, outdir, config=None, log=print):
     log("Stage 4: drawing")
     if kind == "section":       # exterior view mirrors the drawn section's outer wall
         o, _ = pf.split_section(P)
+        # drop the break face at the bottom: end the view at the outermost point there
+        near_bottom = np.where(o[:, 1] < o[:, 1].min() + 1.5)[0]
+        o = o[:near_bottom[np.argmax(o[near_bottom, 0])] + 1]
         view_h, view_r = o[:, 1], o[:, 0]
     else:
         view_h, view_r = bp["h"], ext_r

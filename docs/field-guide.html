@@ -43,20 +43,20 @@
 <h2>4 · Reconstruct</h2>
 <p>Run photogrammetry on your chosen path, set scale from the marker distances, mask the background, and export an OBJ or PLY <b>in millimetres</b>. Save the unedited export as <code>sherd_ID_raw.obj</code> and never overwrite it.</p>
 
-<h2>5 · Run the pipeline</h2>
-<pre><code>cd cpu
-python -m venv .venv &amp;&amp; source .venv/bin/activate
-pip install -r requirements.txt
-python run.py --config config/sherd.example.yaml --input sherd.obj --outdir out/</code></pre>
-<p>Set <code>axis_method</code> to <code>pca</code> (complete vessels), <code>rim_arc</code> (rim sherds) or <code>normals_refine</code> (experimental). Linux needs <code>libegl1</code> for Open3D. Work under a path without spaces.</p>
-<p>Outputs: <code>out/drawing.svg</code>, <code>out/run_report.json</code>, <code>out/clean.obj</code>, and <code>out/profile/profile_overlay.png</code> for a visual check.</p>
+<h2>5 · Make the drawing</h2>
+<p><b>Desktop app:</b> open Archaemetry, run <b>Self-test</b> once, then choose the mesh, type the sherd ID, say whether it is a rim sherd, a body sherd, a complete vessel or already oriented, pick the mesh units, and click <b>Make drawing</b>. A 1–3 million triangle scan takes about a minute.</p>
+<p><b>Command line:</b></p>
+<pre><code>pip install ./cpu
+archaemetry selftest
+archaemetry run sherd.ply -o out --id SAL_1.1</code></pre>
+<p>Outputs, named by sherd ID: <code>_drawing.svg</code>, <code>.pdf</code> and <code>.png</code> at 1:1, <code>_qa.png</code> (check plot: every point, the cut, thickness), <code>_report.json</code> and <code>_profile.json</code>.</p>
 
 <h2>6 · Read the result</h2>
 <div class="tablewrap"><table>
 <tr><th>You see</th><th>It means</th><th>Do this</th></tr>
 <tr><td><span class="tag ok">GO</span></td><td>Axis fixed from a clean rim arc, a near-complete vessel, or an unambiguous surface fit</td><td>Glance at the overlay, then finish in Inkscape if needed</td></tr>
-<tr><td><span class="tag warn">REVIEW</span> rim arc fell back</td><td>Too little clean rim to trust that method</td><td>Try <code>normals_refine</code>, or route to GigaMesh / set the axis by hand</td></tr>
-<tr><td><span class="tag warn">REVIEW</span> axis ambiguous</td><td>Several different axes fit about equally well</td><td>Route to GigaMesh or set the axis and diameter by hand</td></tr>
+<tr><td><span class="tag warn">REVIEW</span> rim arc fell back</td><td>Too little clean rim, or a closed scan (rim arc needs an open edge)</td><td>Use the default (auto), or orient in MeshLab and choose "already oriented"</td></tr>
+<tr><td><span class="tag warn">REVIEW</span> axis ambiguous / walls not separated</td><td>Several different axes fit about equally well, or too little surface</td><td>Orient in MeshLab (axis = Y) and choose "already oriented", or route to GigaMesh</td></tr>
 <tr><td><span class="tag warn">REVIEW</span> low coverage</td><td>Very little of the circumference captured</td><td>Re-shoot, or treat as a manual drawing</td></tr>
 <tr><td><code>wall_thickness_mm: null</code></td><td>Only one surface in the mesh</td><td>Not an error; re-capture with the interior visible if thickness matters</td></tr>
 <tr><td><code>kept_fraction</code> unexpectedly low</td><td>Cleanup discarded a lot</td><td>Open <code>clean.obj</code> and check the sherd is intact</td></tr>

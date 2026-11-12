@@ -30,11 +30,12 @@
 <div class="tablewrap"><table>
 <tr><th>Role</th><th>Tools</th></tr>
 <tr><td>Photogrammetry</td><td>RealityCapture, Meshroom (AliceVision), COLMAP + OpenMVS, Metashape</td></tr>
-<tr><td>Mesh and geometry code</td><td>Python, NumPy, Open3D; PyMeshLab (optional hole fill); MeshLab by hand as the reference</td></tr>
+<tr><td>Mesh and geometry code</td><td>Python, NumPy, SciPy, trimesh (no GPU, any OS); PyMeshLab (optional hole fill); MeshLab by hand as the reference</td></tr>
 <tr><td>Profile and rollout</td><td>Our scripts for plain ware; GigaMesh by hand for decorated ware</td></tr>
-<tr><td>Drawing</td><td>Plain SVG editing in Python; Inkscape for a final manual pass</td></tr>
+<tr><td>Drawing</td><td>SVG, PDF and PNG at 1:1 written by our code; Inkscape for a final manual pass</td></tr>
 <tr><td>Scale and calibration</td><td>Printed ArUco markers, digital calliper, 18% grey card</td></tr>
-<tr><td>Methods</td><td>Largest-component cleanup, PCA + circle-centre axis, rim-arc axis, surface-normal axis with consistency refinement, median-radius bands, Otsu wall split</td></tr>
+<tr><td>Methods</td><td>Largest-component cleanup, PCA + circle-centre axis, rim-arc axis, surface-normal axis with outer-wall consistency refinement, plane section through the axis, perpendicular wall thickness</td></tr>
+<tr><td>Delivery</td><td>Command line, desktop app (Windows, macOS, Linux) with a built-in self-test</td></tr>
 </table></div>
 
 <h2>Stage 1 · Photos to scaled mesh</h2>
@@ -64,13 +65,14 @@
 <tr><td><b>2 · Cleanup</b></td><td>Keep the largest component by face count</td><td>Drop components below a face count; MeshLab by hand</td><td><span class="tag ok">Tested</span> (largest component); <span class="tag acc">Built, not validated</span> (min-faces)</td></tr>
 <tr><td><b>2 · Hole fill</b></td><td>None (never fabricate geometry)</td><td>Capped fill with PyMeshLab</td><td><span class="tag acc">Built, not validated</span></td></tr>
 <tr><td><b>3 · Axis, complete vessels</b></td><td>PCA seed + circle-centre refinement</td><td>Manual axis hint</td><td><span class="tag ok">Tested</span></td></tr>
-<tr><td><b>3 · Axis, rim sherds</b></td><td>Rim-arc: plane and circle fitted to the rim</td><td>Manual axis and diameter (GigaMesh)</td><td><span class="tag ok">Tested</span> for ≥ 90° of rim</td></tr>
-<tr><td><b>3 · Axis, small or rim-less sherds</b></td><td>Surface-normal fit + profile-consistency refinement, multi-start</td><td>Inner-surface method; manual axis (GigaMesh)</td><td><span class="tag warn">Prototype</span> synthetic data only</td></tr>
-<tr><td><b>3 · Profile</b></td><td>Median radius per height band (ignores handles)</td><td>Maximum or percentile radius</td><td><span class="tag ok">Tested</span></td></tr>
-<tr><td><b>3 · Wall thickness</b></td><td>Otsu split into inner and outer wall</td><td>Manual calliper points</td><td><span class="tag ok">Tested</span> on a synthetic shell</td></tr>
+<tr><td><b>3 · Axis, rim sherds (open scans)</b></td><td>Rim-arc: plane and circle fitted to the rim edge</td><td>Manual axis and diameter (GigaMesh)</td><td><span class="tag ok">Tested</span> for ≥ 90° of rim; needs an open mesh</td></tr>
+<tr><td><b>3 · Axis, closed sherds (real scans)</b></td><td>Surface-normal fit + outer-wall consistency refinement, multi-start</td><td>Manual axis: orient in MeshLab, axis = Y</td><td><span class="tag warn">Prototype</span> synthetic closed sherds: GO from ~90°, REVIEW below</td></tr>
+<tr><td><b>3 · Profile</b></td><td>Plane section through the axis, most complete cut, filled</td><td>Median radius per band (exterior-only scans)</td><td><span class="tag ok">Tested</span> synthetic, 0.05–0.11&nbsp;mm</td></tr>
+<tr><td><b>3 · Wall thickness</b></td><td>Perpendicular (calliper-style), median over cuts, every 5&nbsp;mm</td><td>Manual calliper points</td><td><span class="tag ok">Tested</span> synthetic, 0.02–0.03&nbsp;mm</td></tr>
 <tr><td><b>3 · Decorated ware rollout</b></td><td>GigaMesh, by hand</td><td>None planned</td><td><span class="tag manual">Manual</span> · <span class="tag todo">Not tested</span></td></tr>
-<tr><td><b>4 · Publish</b></td><td>Scale bar, caption, 0.3&nbsp;mm line in SVG</td><td>Inkscape by hand</td><td><span class="tag ok">Tested</span></td></tr>
-<tr><td><b>4 · Section hatching</b></td><td>—</td><td>Inkscape or SVG pattern</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td><b>4 · Drawing</b></td><td>Filled section, axis, rim line, exterior view, block scale bar; SVG/PDF/PNG 1:1</td><td>Inkscape by hand</td><td><span class="tag ok">Tested</span></td></tr>
+<tr><td><b>4 · Section hatching</b></td><td>Option: solid, hatch or none</td><td>Inkscape</td><td><span class="tag acc">Built, not validated</span></td></tr>
+<tr><td><b>Desktop app</b></td><td>Windows, macOS, Linux builds with self-test</td><td>Command line</td><td><span class="tag acc">Built, not validated</span> each build is self-tested in CI before upload</td></tr>
 <tr><td><b>Verdict</b></td><td>GO or REVIEW from axis evidence and coverage</td><td>Always manual review</td><td><span class="tag ok">Tested</span> on test data</td></tr>
 </table></div>
 
@@ -80,7 +82,7 @@
 <li>Surface-normal axis on real meshes, and its REVIEW threshold.</li>
 <li>Stage 1 on the open tools (COLMAP, OpenMVS) and on rented GPUs.</li>
 <li>Stage 1 with no GPU.</li>
-<li>Packaging, hatching, and the body-sherd inner-surface method.</li>
+<li>The desktop app in the hands of field testers.</li>
 </ul>
 
 <div class="pager"><a class="btn" href="proposal.html">← Proposal</a><a class="btn" href="how-it-works.html">How it works →</a></div>

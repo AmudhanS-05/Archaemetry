@@ -191,3 +191,18 @@ for complete/large vessels** — sub-degree axis, ~mm profile, and metric wall t
 both surfaces are captured. For small-arc rim sherds and body sherds, keep the **bookend**
 deployment (GigaMesh for the profile) until `rim_arc` is re-measured on real broken sherds
 (not just cropped vessels).
+
+## Result 6: section drawing and wall thickness (two-walled meshes)
+
+The profile is now a real section: the mesh is cut by a plane through the axis (the most
+complete cut, checked against the robust exterior), giving a closed polygon that is drawn
+filled. Wall thickness is measured perpendicular to the wall, like a calliper, as the
+median over all near-complete cuts, and sampling stops one wall-thickness above the
+lowest break (where the shortest path crosses the break face instead of the wall).
+
+Against closed synthetic sherds with break faces, a rounded lip and wall thickness
+varying from 4 to 9 mm (exact answer known), with the true axis given: section error
+0.000 mm on clean geometry, 0.07-0.09 mm RMS with 0.1 mm surface noise; thickness
+error 0.01 mm mean on clean geometry. With the axis estimated by the pipeline, see
+`cpu/README.md` (complete vessel 0.06 mm section / 0.02 mm thickness; 90-120 deg rim
+sherds 0.05-0.11 mm / 0.02-0.03 mm). Still synthetic only.

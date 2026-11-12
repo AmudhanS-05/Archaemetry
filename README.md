@@ -21,7 +21,8 @@ archaemetry/
       marker-measurements.csv   calliper-measured distances between marker pairs
   templates/
     sherd_template/          copy this per sherd (see below)
-  cpu/                       Stages 2-4: cleanup, profile extraction, publish (built, CPU-only)
+  cpu/                       Stages 2-4 as an installable package + desktop app: cleanup, axis,
+                             section + wall thickness, convention drawing (built, CPU-only)
   gpu/                       Stage 1: images -> scaled mesh (SfM/MVS; planned, needs a CUDA GPU)
 ```
 
@@ -71,6 +72,13 @@ The AW100 has wide-angle distortion and no RAW capability — fine for proving t
 - Camera stays fixed per ring; only the turntable rotates. 60–70% overlap required between adjacent shots.
 - Photograph a legible label/sherd ID as the first frame of every set.
 - If shooting RAW: cull, apply an ICC profile (from a ColorChecker Passport shot), lift shadows (especially for dark/black-slip wares), export JPG 95+ in RawTherapee before the photogrammetry stage. Skip this stage entirely on cameras without RAW (e.g. the AW100).
+
+## Automated lane (this repository)
+
+`cpu/` turns a mesh into the profile drawing with a GO / REVIEW verdict, as a command
+(`archaemetry run`) or a desktop app for field testers (built for Windows, macOS and
+Linux by `.github/workflows/release.yml`). See [`cpu/README.md`](cpu/README.md). The
+manual GUI route below remains the reference.
 
 ## Software pipeline
 
