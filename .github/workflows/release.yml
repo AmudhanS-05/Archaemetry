@@ -1,0 +1,75 @@
+name: Build desktop app
+
+# Builds the field-test app for Windows, macOS and Linux and self-tests each build.
+# Runs on demand, when the app or packaging changes on any branch (build check only),
+# and on tags v*, where the zips are also attached to a GitHub release.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+    branches: ["**"]
+    paths: ["cpu/archaemetry/**", "cpu/packaging/**", "cpu/pyproject.toml", ".github/workflows/release.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, name: windows }
+          - { os: macos-latest,   name: macos }
+          - { os: ubuntu-22.04,   name: linux }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install "./cpu[build]"
+      - name: Build
+        run: pyinstaller --noconfirm cpu/packaging/archaemetry.spec
+
+      - name: Self-test the frozen app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath dist/Archaemetry/Archaemetry.exe -ArgumentList "selftest","-o","frozen-selftest" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { exit 1 }
+          Get-Content frozen-selftest/selftest.json
+      - name: Self-test the frozen app (macOS, Linux)
+        if: runner.os != 'Windows'
+        run: |
+          dist/Archaemetry/Archaemetry selftest -o frozen-selftest
+          cat frozen-selftest/selftest.json
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Copy-Item cpu/packaging/FIELD_TEST.md, cpu/packaging/FEEDBACK_FORM.md dist/Archaemetry/
+          Compress-Archive -Path dist/Archaemetry -DestinationPath Archaemetry-windows.zip
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir pkg && cp -R dist/Archaemetry.app pkg/ && cp cpu/packaging/FIELD_TEST.md cpu/packaging/FEEDBACK_FORM.md pkg/
+          ditto -c -k --sequesterRsrc pkg Archaemetry-macos.zip
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cp cpu/packaging/FIELD_TEST.md cpu/packaging/FEEDBACK_FORM.md dist/Archaemetry/
+          tar -czf Archaemetry-linux.tar.gz -C dist Archaemetry
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Archaemetry-${{ matrix.name }}
+          path: Archaemetry-${{ matrix.name }}.*
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Archaemetry-${{ matrix.name }}.*

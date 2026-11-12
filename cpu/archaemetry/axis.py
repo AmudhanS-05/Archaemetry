@@ -55,7 +55,7 @@ def fit_axis(V, n_bands=40, n_refine=4, seed_dir=None):
     best = None
     for k in (2, 1, 0):
         p, d, resid = _fit_axis_seeded(V, n_bands, n_refine, evecs[:, k])
-        cost = consistency_cost(V, p, d)
+        cost = consistency_cost(V[_subsample(len(V), MAX_FIT_POINTS)], p, d)
         if best is None or cost < best[0]:
             best = (cost, p, d, resid)
     return best[1], best[2], best[3]
@@ -213,6 +213,16 @@ def _basis(d):
     return e1, np.cross(d, e1)
 
 
+MAX_FIT_POINTS = 80_000          # a 4-6 parameter axis needs far fewer points than a scan has
+
+
+def _subsample(n, k, seed=0):
+    """Deterministic random subset of range(n) of size <= k (sorted)."""
+    if n <= k:
+        return np.arange(n)
+    return np.sort(np.random.default_rng(seed).choice(n, k, replace=False))
+
+
 def fit_axis_normals(V, T, n_iter=12, ridge=1e-6, mask=None):
     """Return (p0, d, info). info carries conditioning/residual signals for gating.
     `mask` restricts the fit to a subset of vertices (e.g. wall surfaces only)."""
@@ -220,6 +230,8 @@ def fit_axis_normals(V, T, n_iter=12, ridge=1e-6, mask=None):
     if mask is not None:
         ok = ok & mask
     V, N = V[ok], N[ok]
+    keep = _subsample(len(V), 3 * MAX_FIT_POINTS)
+    V, N = V[keep], N[keep]
     c = V.mean(0)
     s = float(np.mean(np.linalg.norm(V - c, axis=1))) + 1e-9
     P = (V - c) / s
@@ -365,6 +377,7 @@ def fit_axis_multistart(V, T, extra_seeds=(), n_jitter=4, jitter_deg=8.0, tol=1.
         pn, dn, inf_n = fit_axis_normals(V, T, mask=wall)
     outer = _outer_wall(V, pn, dn, cosr, wall)
     Vfull, V = V, V[outer]
+    V = V[_subsample(len(V), MAX_FIT_POINTS, seed)]
     c = Vfull.mean(0)
     cov = np.cov((V - c).T)
     ev, evec = np.linalg.eigh(cov)
